@@ -121,7 +121,7 @@ public final class AgentOptions {
 	/**
 	 * Possible values for {@link AgentOptions#OUTPUT}.
 	 */
-	public static enum OutputMode {
+	public enum OutputMode {
 
 		/**
 		 * Value for the {@link AgentOptions#OUTPUT} parameter: At VM
@@ -189,10 +189,18 @@ public final class AgentOptions {
 	 */
 	public static final String JMX = "jmx";
 
+	public static final String KNOWNPROCESS = "knownprocess";
+
+	public static final String ENVID = "envid";
+
+	public static final String COVERAGESERVICEENDPOINT = "csendpoint";
+
+	public static final String MACHINEHOSTNAME = "hostname";
+
 	private static final Collection<String> VALID_OPTIONS = Arrays.asList(
 			DESTFILE, APPEND, INCLUDES, EXCLUDES, EXCLCLASSLOADER,
 			INCLBOOTSTRAPCLASSES, INCLNOLOCATIONCLASSES, SESSIONID, DUMPONEXIT,
-			OUTPUT, ADDRESS, PORT, CLASSDUMPDIR, JMX);
+			OUTPUT, ADDRESS, PORT, CLASSDUMPDIR, JMX, KNOWNPROCESS, ENVID, COVERAGESERVICEENDPOINT, MACHINEHOSTNAME);
 
 	private final Map<String, String> options;
 
@@ -555,6 +563,22 @@ public final class AgentOptions {
 	 */
 	public void setJmx(final boolean jmx) {
 		setOption(JMX, jmx);
+	}
+
+	public String getKnownProcess() {
+		return getOption(KNOWNPROCESS, "");
+	}
+
+	public int getEnvId() {
+		return getOption(ENVID, -1);
+	}
+
+	public String getCoverageServiceEndpoint() {
+		return getOption(COVERAGESERVICEENDPOINT, "");
+	}
+
+	public String getMachineHostname() {
+		return getOption(MACHINEHOSTNAME, "");
 	}
 
 	private void setOption(final String key, final int value) {

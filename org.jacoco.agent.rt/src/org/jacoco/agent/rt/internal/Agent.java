@@ -23,6 +23,7 @@ import org.jacoco.agent.rt.internal.output.IAgentOutput;
 import org.jacoco.agent.rt.internal.output.NoneOutput;
 import org.jacoco.agent.rt.internal.output.TcpClientOutput;
 import org.jacoco.agent.rt.internal.output.TcpServerOutput;
+import org.jacoco.agent.rt.internal.util.CoverageServiceUtil;
 import org.jacoco.core.JaCoCo;
 import org.jacoco.core.data.ExecutionDataWriter;
 import org.jacoco.core.runtime.AbstractRuntime;
@@ -89,6 +90,8 @@ public class Agent implements IAgent {
 
 	private Callable<Void> jmxRegistration;
 
+	private String processId;
+
 	/**
 	 * Creates a new agent with the given agent options.
 	 *
@@ -130,6 +133,13 @@ public class Agent implements IAgent {
 			if (options.getJmx()) {
 				jmxRegistration = new JmxRegistration(this);
 			}
+			CoverageServiceUtil coverageServiceUtil = new CoverageServiceUtil(options.getCoverageServiceEndpoint());
+			processId = coverageServiceUtil.registerJavaProcess(
+					options.getEnvId(),
+					options.getKnownProcess(),
+					options.getMachineHostname(),
+					options.getPort()
+			);
 		} catch (final Exception e) {
 			logger.logExeption(e);
 			throw e;
@@ -141,6 +151,13 @@ public class Agent implements IAgent {
 	 */
 	public void shutdown() {
 		try {
+			try {
+				CoverageServiceUtil coverageServiceUtil = new CoverageServiceUtil(options.getCoverageServiceEndpoint());
+				coverageServiceUtil.dumpProcessCoverage(processId);
+			}
+			catch (Exception e) {
+				logger.logExeption(e);
+			}
 			if (options.getDumpOnExit()) {
 				output.writeExecutionData(false);
 			}

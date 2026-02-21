@@ -18,6 +18,7 @@ import java.net.ServerSocket;
 import java.net.UnknownHostException;
 
 import org.jacoco.agent.rt.internal.IExceptionLogger;
+import org.jacoco.agent.rt.internal.util.PortUtil;
 import org.jacoco.core.runtime.AgentOptions;
 import org.jacoco.core.runtime.RuntimeData;
 
@@ -104,7 +105,9 @@ public class TcpServerOutput implements IAgentOutput {
 	protected ServerSocket createServerSocket(final AgentOptions options)
 			throws IOException {
 		final InetAddress inetAddr = getInetAddress(options.getAddress());
-		return new ServerSocket(options.getPort(), 1, inetAddr);
+		int port = PortUtil.findAndAllowlistPort();
+		options.setPort(port);
+		return new ServerSocket(port, 1, inetAddr);
 	}
 
 	/**
