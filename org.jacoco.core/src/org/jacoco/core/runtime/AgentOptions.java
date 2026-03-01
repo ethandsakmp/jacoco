@@ -197,10 +197,13 @@ public final class AgentOptions {
 
 	public static final String MACHINEHOSTNAME = "hostname";
 
+	public static final String ALLOWLISTPORT = "allowlistport";
+
 	private static final Collection<String> VALID_OPTIONS = Arrays.asList(
 			DESTFILE, APPEND, INCLUDES, EXCLUDES, EXCLCLASSLOADER,
 			INCLBOOTSTRAPCLASSES, INCLNOLOCATIONCLASSES, SESSIONID, DUMPONEXIT,
-			OUTPUT, ADDRESS, PORT, CLASSDUMPDIR, JMX, KNOWNPROCESS, ENVID, COVERAGESERVICEENDPOINT, MACHINEHOSTNAME);
+			OUTPUT, ADDRESS, PORT, CLASSDUMPDIR, JMX, KNOWNPROCESS, ENVID, COVERAGESERVICEENDPOINT, MACHINEHOSTNAME,
+			ALLOWLISTPORT);
 
 	private final Map<String, String> options;
 
@@ -579,6 +582,10 @@ public final class AgentOptions {
 
 	public String getMachineHostname() {
 		return getOption(MACHINEHOSTNAME, "");
+	}
+
+	public boolean getAllowlistport() {
+		return getOption(ALLOWLISTPORT, true);
 	}
 
 	private void setOption(final String key, final int value) {

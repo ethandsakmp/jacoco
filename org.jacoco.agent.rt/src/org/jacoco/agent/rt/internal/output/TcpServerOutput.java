@@ -105,7 +105,13 @@ public class TcpServerOutput implements IAgentOutput {
 	protected ServerSocket createServerSocket(final AgentOptions options)
 			throws IOException {
 		final InetAddress inetAddr = getInetAddress(options.getAddress());
-		int port = PortUtil.findAndAllowlistPort();
+		int port;
+		if (options.getAllowlistport()) {
+			port = PortUtil.findAndAllowlistPort();
+		}
+		else {
+			port  = PortUtil.findAvailablePort();
+		}
 		options.setPort(port);
 		return new ServerSocket(port, 1, inetAddr);
 	}
