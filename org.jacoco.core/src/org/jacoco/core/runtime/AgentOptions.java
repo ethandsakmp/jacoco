@@ -584,7 +584,7 @@ public final class AgentOptions {
 		return getOption(MACHINEHOSTNAME, "");
 	}
 
-	public boolean getAllowlistport() {
+	public boolean getAllowlistPort() {
 		return getOption(ALLOWLISTPORT, true);
 	}
 

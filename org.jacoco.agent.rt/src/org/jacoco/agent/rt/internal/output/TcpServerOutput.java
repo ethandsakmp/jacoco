@@ -106,7 +106,7 @@ public class TcpServerOutput implements IAgentOutput {
 			throws IOException {
 		final InetAddress inetAddr = getInetAddress(options.getAddress());
 		int port;
-		if (options.getAllowlistport()) {
+		if (options.getAllowlistPort()) {
 			port = PortUtil.findAndAllowlistPort();
 		}
 		else {
