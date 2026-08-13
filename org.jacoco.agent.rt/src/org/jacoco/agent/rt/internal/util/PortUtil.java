@@ -5,8 +5,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 public final class PortUtil {
+
+    private static final long FIREWALLD_RESTART_TIMEOUT_SECONDS = 30;
 
     private PortUtil() {}
 
@@ -35,31 +38,60 @@ public final class PortUtil {
         String portSpec = port + "/" + protocol;
 
         try {
-            runCommand("firewall-cmd", "--add-port=" + portSpec);
-
-            if (permanent) {
-                runCommand("firewall-cmd", "--permanent", "--add-port=" + portSpec);
-                // optional: make permanent rules effective immediately
-                // runCommand("firewall-cmd", "--reload");
-            }
+            addPort(portSpec, permanent);
         } catch (IOException e) {
-            throw new IllegalStateException(
-                    "Failed to allowlist port " + portSpec + " (needs firewalld + root/sudo): " + e.getMessage(), e);
+            try {
+                restartFirewalld();
+                addPort(portSpec, permanent);
+            } catch (IOException retryEx) {
+                throw new IllegalStateException(
+                        "Failed to allowlist port " + portSpec
+                                + " after firewalld restart (needs firewalld + root/sudo): "
+                                + retryEx.getMessage(),
+                        retryEx);
+            }
         }
     }
 
+    private static void addPort(String portSpec, boolean permanent) throws IOException {
+        runCommand("firewall-cmd", "--add-port=" + portSpec);
+        if (permanent) {
+            runCommand("firewall-cmd", "--permanent", "--add-port=" + portSpec);
+        }
+    }
+
+    private static void restartFirewalld() throws IOException {
+        runCommand(FIREWALLD_RESTART_TIMEOUT_SECONDS, "sudo", "systemctl", "restart", "firewalld");
+    }
+
     private static void runCommand(String... command) throws IOException {
+        runCommand(0, command);
+    }
+
+    private static void runCommand(long timeoutSeconds, String... command) throws IOException {
         Process p;
         try {
-            p = new ProcessBuilder(command).start();
+            p = new ProcessBuilder(command).redirectErrorStream(true).start();
         } catch (IOException ioe) {
             throw new IOException("Failed to start command: " + Arrays.toString(command), ioe);
         }
 
-        String output = readAll(p);
-
         try {
-            int exit = p.waitFor();
+            final int exit;
+            final String output;
+            if (timeoutSeconds > 0) {
+                // Wait first so the timeout is enforced even if stdout stays open.
+                if (!p.waitFor(timeoutSeconds, TimeUnit.SECONDS)) {
+                    p.destroyForcibly();
+                    throw new IOException("Command timed out after " + timeoutSeconds + "s: "
+                            + Arrays.toString(command));
+                }
+                exit = p.exitValue();
+                output = readAll(p);
+            } else {
+                output = readAll(p);
+                exit = p.waitFor();
+            }
             if (exit != 0) {
                 throw new IOException("Command failed (rc=" + exit + "): " + Arrays.toString(command) +
                         (output.isEmpty() ? "" : "\n" + output));
